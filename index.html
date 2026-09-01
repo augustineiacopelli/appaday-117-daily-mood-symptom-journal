@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Daily Mood and Symptom Journal - AppADay 117</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F7F3;
+    --surface:#FFFFFF;
+    --surface-line:#E1E8E2;
+    --ink:#20302A;
+    --ink-soft:#54685D;
+    --ink-faint:#8B9C92;
+    --primary:#3E7263;
+    --primary-dark:#2C5449;
+    --primary-tint:#E4EEE7;
+    --gold:#B98A2E;
+    --plum:#7C5295;
+    --slate:#4A6FA5;
+    --danger:#B4463A;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 2px rgba(32,48,42,0.06), 0 6px 20px rgba(32,48,42,0.06);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100dvh;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Karla',-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+
+  body{
+    display:flex;
+    flex-direction:column;
+    min-height:100dvh;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    margin:0;
+    color:var(--ink);
+  }
+
+  a{color:var(--primary-dark);}
+
+  .wrap{
+    width:100%;
+    max-width:640px;
+    margin:0 auto;
+    padding:0 20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  header{
+    padding:28px 0 18px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    border-bottom:1px solid var(--surface-line);
+  }
+
+  header .titles h1{
+    font-size:1.5rem;
+    line-height:1.25;
+  }
+
+  header .titles .sub{
+    margin-top:4px;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+
+  header .titles .backlink{
+    display:inline-block;
+    margin-top:10px;
+    font-size:0.82rem;
+    color:var(--primary-dark);
+    text-decoration:none;
+    border-bottom:1px solid var(--primary);
+    padding-bottom:1px;
+  }
+
+  #settingsBtn{
+    flex-shrink:0;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    border:1px solid var(--surface-line);
+    background:var(--surface);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition:background 0.15s ease, color 0.15s ease;
+  }
+
+  #settingsBtn:hover{background:var(--primary-tint);color:var(--primary-dark);}
+
+  #settingsBtn svg{width:20px;height:20px;}
+
+  .streak-row{
+    margin-top:18px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .streak-badge{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--primary-tint);
+    border-radius:999px;
+    padding:8px 16px 8px 10px;
+  }
+
+  .streak-badge .flame{
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background:var(--primary);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:0.95rem;
+  }
+
+  .streak-badge .text{
+    font-size:0.88rem;
+    color:var(--primary-dark);
+    font-weight:600;
+  }
+
+  main{flex:1;padding:22px 0 40px;display:flex;flex-direction:column;gap:22px;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--surface-line);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    box-shadow:var(--shadow);
+  }
+
+  .card h2{font-size:1.15rem;margin-bottom:4px;}
+  .card .card-sub{font-size:0.86rem;color:var(--ink-soft);margin-bottom:16px;}
+
+  .summary-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:18px;
+  }
+
+  .summary-chip{
+    background:var(--bg);
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:0.84rem;
+    color:var(--ink-soft);
+  }
+
+  .summary-chip .num{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:var(--primary-dark);
+    margin-right:4px;
+  }
+
+  .entry-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  .entry-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 12px;
+    background:var(--bg);
+    border-radius:var(--radius-sm);
+  }
+
+  .entry-row .entry-details{
+    font-size:0.84rem;
+    color:var(--ink-soft);
+    line-height:1.5;
+  }
+
+  .entry-row .entry-time{
+    font-weight:700;
+    color:var(--ink);
+    margin-right:8px;
+  }
+
+  .entry-delete{
+    flex-shrink:0;
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:1px solid var(--surface-line);
+    background:var(--surface);
+    color:var(--danger);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1rem;
+    line-height:1;
+  }
+
+  .field{margin-bottom:18px;}
+  .field:last-of-type{margin-bottom:0;}
+
+  .field label{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:0.92rem;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:8px;
+  }
+
+  .field label .val{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    color:var(--primary-dark);
+    font-size:1.05rem;
+  }
+
+  input[type="range"]{
+    -webkit-appearance:none;
+    width:100%;
+    height:44px;
+    background:transparent;
+    cursor:pointer;
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track{
+    height:8px;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--primary-tint),var(--primary));
+  }
+
+  input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:26px;height:26px;
+    margin-top:-9px;
+    border-radius:50%;
+    background:var(--surface);
+    border:3px solid var(--primary);
+    box-shadow:0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  input[type="range"]::-moz-range-track{
+    height:8px;
+    border-radius:999px;
+    background:linear-gradient(90deg,var(--primary-tint),var(--primary));
+  }
+
+  input[type="range"]::-moz-range-thumb{
+    width:22px;height:22px;
+    border-radius:50%;
+    background:var(--surface);
+    border:3px solid var(--primary);
+  }
+
+  .scale-hint{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.72rem;
+    color:var(--ink-faint);
+    margin-top:2px;
+  }
+
+  input[type="text"]{
+    width:100%;
+    min-height:44px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--surface-line);
+    background:var(--bg);
+    padding:0 14px;
+    font-size:1rem;
+    font-family:'Karla',sans-serif;
+    color:var(--ink);
+  }
+
+  input[type="text"]:focus,input[type="range"]:focus{
+    outline:2px solid var(--primary);
+    outline-offset:2px;
+  }
+
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  .stepper button{
+    width:44px;
+    height:44px;
+    border-radius:10px;
+    border:1px solid var(--surface-line);
+    background:var(--bg);
+    color:var(--primary-dark);
+    font-size:1.3rem;
+    font-weight:700;
+    cursor:pointer;
+    line-height:1;
+  }
+
+  .stepper button:hover{background:var(--primary-tint);}
+
+  .stepper .count-display{
+    min-width:44px;
+    text-align:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.15rem;
+    color:var(--ink);
+  }
+
+  .type-toggle{
+    display:flex;
+    gap:8px;
+    margin-top:8px;
+  }
+
+  .type-toggle button{
+    flex:1;
+    min-height:40px;
+    border-radius:999px;
+    border:1px solid var(--surface-line);
+    background:var(--bg);
+    color:var(--ink-soft);
+    font-size:0.82rem;
+    font-weight:700;
+    cursor:pointer;
+  }
+
+  .type-toggle button.active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+  }
+
+  .type-note{
+    font-size:0.74rem;
+    color:var(--ink-faint);
+    margin-top:6px;
+  }
+
+  .skip-toggle{
+    min-height:44px;
+    width:100%;
+    margin-top:10px;
+    border-radius:var(--radius-sm);
+    border:1px dashed var(--surface-line);
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:0.82rem;
+    font-weight:600;
+    cursor:pointer;
+    text-align:center;
+  }
+
+  .skip-toggle:hover{background:var(--bg);}
+
+  .skip-toggle.active{
+    border-style:solid;
+    border-color:var(--danger);
+    color:var(--danger);
+    background:transparent;
+  }
+
+  input[type="range"]:disabled{
+    cursor:not-allowed;
+  }
+
+  .btn{
+    min-height:44px;
+    border-radius:999px;
+    border:none;
+    padding:0 24px;
+    font-family:'Karla',sans-serif;
+    font-weight:700;
+    font-size:0.95rem;
+    cursor:pointer;
+    transition:opacity 0.15s ease, transform 0.05s ease;
+  }
+
+  .btn:active{transform:scale(0.98);}
+
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+
+  .btn-block{width:100%;}
+
+  .chart-card canvas{max-height:280px;}
+
+  .chart-empty{
+    font-size:0.9rem;
+    color:var(--ink-soft);
+    padding:20px 0;
+    text-align:center;
+  }
+
+  footer{
+    padding:20px 0 32px;
+    text-align:center;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+  }
+
+  footer a{
+    color:var(--primary-dark);
+    text-decoration:none;
+    border-bottom:1px solid var(--primary);
+  }
+
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(32,48,42,0.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+    padding:0;
+  }
+
+  .modal-overlay.open{display:flex;}
+
+  .modal{
+    background:var(--surface);
+    width:100%;
+    max-width:640px;
+    border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+    padding:26px 22px 30px;
+    max-height:88dvh;
+    overflow-y:auto;
+  }
+
+  @media (min-width:600px){
+    .modal-overlay{align-items:center;}
+    .modal{border-radius:var(--radius-lg);}
+  }
+
+  .modal h2{font-size:1.2rem;margin-bottom:6px;}
+  .modal .modal-sub{font-size:0.86rem;color:var(--ink-soft);margin-bottom:18px;}
+
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+  }
+
+  .modal-actions .btn{flex:1;}
+
+  .symptom-input-row{
+    border:1px solid var(--surface-line);
+    border-radius:var(--radius-md);
+    padding:14px;
+    margin-bottom:12px;
+  }
+
+  .symptom-input-row .row-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .symptom-input-row .row-top input{flex:1;}
+
+  .remove-symptom{
+    width:44px;height:44px;
+    flex-shrink:0;
+    border-radius:50%;
+    border:1px solid var(--surface-line);
+    background:var(--bg);
+    color:var(--danger);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+    line-height:1;
+  }
+
+  .add-symptom-btn{
+    font-size:0.86rem;
+    color:var(--primary-dark);
+    background:none;
+    border:none;
+    min-height:44px;
+    padding:0;
+    cursor:pointer;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+  }
+
+  .field-error{
+    font-size:0.8rem;
+    color:var(--danger);
+    margin-top:6px;
+    display:none;
+  }
+
+  .field-error.show{display:block;}
+
+  .legend-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:14px;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+  }
+
+  .legend-line{
+    display:inline-block;
+    width:20px;
+    height:0;
+    border-top:3px solid;
+    margin-right:6px;
+    vertical-align:middle;
+  }
+
+  .legend-line-dashed{
+    border-top-style:dashed;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="titles">
+      <h1>Daily Mood and Symptom Journal</h1>
+      <div class="sub">A quick check-in for how you feel, as often as you like.</div>
+      <a class="backlink" href="https://augustineiacopelli.github.io/appaday/">All AppADay apps</a>
+    </div>
+    <button id="settingsBtn" type="button" aria-label="Manage tracked symptoms">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </header>
+
+  <div class="streak-row">
+    <div class="streak-badge">
+      <div class="flame" id="streakCount">0</div>
+      <div class="text" id="streakLabel">Log today to start a streak</div>
+    </div>
+  </div>
+
+  <main>
+
+    <section class="card" id="checkinCard">
+      <!-- populated by JS -->
+    </section>
+
+    <section class="card chart-card">
+      <h2>Last 30 days</h2>
+      <div class="card-sub">Mood and scale symptoms are daily averages. Count symptoms are daily totals.</div>
+      <div id="chartEmpty" class="chart-empty" style="display:none;">Log a few days to see your trend here.</div>
+      <canvas id="trendChart" height="220"></canvas>
+      <div class="legend-row" id="legendRow"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <a href="https://augustineiacopelli.github.io/appaday/">All AppADay apps</a>
+  </footer>
+
+</div>
+
+<div class="modal-overlay" id="symptomModalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Name what you want to track</h2>
+    <div class="modal-sub" id="modalSub">Pick one to three symptoms or feelings to check in on. Each can be rated on a scale or counted by occurrence.</div>
+    <div id="symptomInputs"></div>
+    <button type="button" class="add-symptom-btn" id="addSymptomBtn">Add another</button>
+    <div class="field-error" id="symptomError">Enter a name for each symptom, one to three total.</div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary btn-block" id="saveSymptomsBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="entryModalOverlay">
+  <div class="modal">
+    <h2>Log an entry</h2>
+    <div class="modal-sub">You can log as many entries today as you like. Mood and scale symptoms average across the day, counts add up.</div>
+    <div id="entryForm"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary btn-block" id="saveEntryBtn">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  var SYMPTOMS_KEY = 'appaday-117-symptoms';
+  var ENTRIES_KEY = 'appaday-117-entries';
+  var LINE_COLORS = ['#B98A2E', '#3E7263', '#7C5295', '#4A6FA5'];
+
+  function loadSymptoms(){
+    try{
+      var raw = localStorage.getItem(SYMPTOMS_KEY);
+      if(!raw) return null;
+      var parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed) || parsed.length === 0) return null;
+      return parsed;
+    }catch(e){
+      return null;
+    }
+  }
+
+  function saveSymptoms(list){
+    try{
+      localStorage.setItem(SYMPTOMS_KEY, JSON.stringify(list));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function loadEntries(){
+    try{
+      var raw = localStorage.getItem(ENTRIES_KEY);
+      if(!raw) return [];
+      var parsed = JSON.parse(raw);
+      if(!Array.isArray(parsed)) return [];
+      return parsed;
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveEntries(list){
+    try{
+      localStorage.setItem(ENTRIES_KEY, JSON.stringify(list));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function dateKey(d){
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function todayStr(){
+    return dateKey(new Date());
+  }
+
+  function dateStrFromOffset(offsetDays){
+    var d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    return dateKey(d);
+  }
+
+  function shortLabel(dateStr){
+    var parts = dateStr.split('-');
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  function timeLabel(ms){
+    var d = new Date(ms);
+    var h = d.getHours();
+    var min = String(d.getMinutes()).padStart(2, '0');
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12;
+    if(h12 === 0) h12 = 12;
+    return h12 + ':' + min + ' ' + ampm;
+  }
+
+  function makeId(){
+    return 'id' + Date.now() + Math.floor(Math.random()*10000);
+  }
+
+  var symptoms = loadSymptoms();
+  var entries = loadEntries();
+  var chartInstance = null;
+
+  var checkinCard = document.getElementById('checkinCard');
+  var streakCountEl = document.getElementById('streakCount');
+  var streakLabelEl = document.getElementById('streakLabel');
+  var settingsBtn = document.getElementById('settingsBtn');
+
+  var symptomOverlay = document.getElementById('symptomModalOverlay');
+  var symptomInputs = document.getElementById('symptomInputs');
+  var addSymptomBtn = document.getElementById('addSymptomBtn');
+  var saveSymptomsBtn = document.getElementById('saveSymptomsBtn');
+  var symptomError = document.getElementById('symptomError');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalSub = document.getElementById('modalSub');
+
+  var entryOverlay = document.getElementById('entryModalOverlay');
+  var entryForm = document.getElementById('entryForm');
+  var saveEntryBtn = document.getElementById('saveEntryBtn');
+
+  // ---------- symptom settings modal ----------
+
+  function renderSymptomInputs(prefill){
+    symptomInputs.innerHTML = '';
+    var list = (prefill && prefill.length) ? prefill : [{id: makeId(), name: '', type: 'scale'}];
+    list.forEach(function(s){ addSymptomRow(s.id, s.name, s.type || 'scale'); });
+    updateAddButtonVisibility();
+  }
+
+  function addSymptomRow(id, name, type){
+    var row = document.createElement('div');
+    row.className = 'symptom-input-row';
+    row.setAttribute('data-id', id);
+    row.setAttribute('data-type', type);
+
+    var top = document.createElement('div');
+    top.className = 'row-top';
+
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.maxLength = 30;
+    input.placeholder = 'e.g. Headache';
+    input.value = name || '';
+    top.appendChild(input);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-symptom';
+    removeBtn.setAttribute('aria-label', 'Remove this symptom');
+    removeBtn.textContent = String.fromCharCode(215);
+    removeBtn.addEventListener('click', function(){
+      if(row.parentNode){ row.parentNode.removeChild(row); }
+      updateAddButtonVisibility();
+    });
+    top.appendChild(removeBtn);
+
+    row.appendChild(top);
+
+    var toggle = document.createElement('div');
+    toggle.className = 'type-toggle';
+
+    var scaleBtn = document.createElement('button');
+    scaleBtn.type = 'button';
+    scaleBtn.textContent = 'Scale (1 to 10)';
+    scaleBtn.className = type === 'scale' ? 'active' : '';
+
+    var countBtn = document.createElement('button');
+    countBtn.type = 'button';
+    countBtn.textContent = 'Count';
+    countBtn.className = type === 'count' ? 'active' : '';
+
+    scaleBtn.addEventListener('click', function(){
+      row.setAttribute('data-type', 'scale');
+      scaleBtn.className = 'active';
+      countBtn.className = '';
+    });
+    countBtn.addEventListener('click', function(){
+      row.setAttribute('data-type', 'count');
+      countBtn.className = 'active';
+      scaleBtn.className = '';
+    });
+
+    toggle.appendChild(scaleBtn);
+    toggle.appendChild(countBtn);
+    row.appendChild(toggle);
+
+    var note = document.createElement('div');
+    note.className = 'type-note';
+    note.textContent = 'Scale entries average across the day. Count entries add up across the day. Changing this later changes how past days are summarized.';
+    row.appendChild(note);
+
+    symptomInputs.appendChild(row);
+  }
+
+  function updateAddButtonVisibility(){
+    addSymptomBtn.style.display = symptomInputs.children.length >= 3 ? 'none' : 'flex';
+    var rows = symptomInputs.querySelectorAll('.symptom-input-row');
+    rows.forEach(function(row){
+      var removeBtn = row.querySelector('.remove-symptom');
+      if(rows.length <= 1 && removeBtn){ removeBtn.style.display = 'none'; }
+      else if(removeBtn){ removeBtn.style.display = 'flex'; }
+    });
+  }
+
+  addSymptomBtn.addEventListener('click', function(){
+    if(symptomInputs.children.length >= 3) return;
+    addSymptomRow(makeId(), '', 'scale');
+    updateAddButtonVisibility();
+  });
+
+  function openSymptomModal(isFirstRun){
+    if(isFirstRun){
+      modalTitle.textContent = 'Name what you want to track';
+      modalSub.textContent = 'Pick one to three symptoms or feelings to check in on. Each can be rated on a scale or counted by occurrence.';
+      renderSymptomInputs(null);
+    }else{
+      modalTitle.textContent = 'Manage tracked symptoms';
+      modalSub.textContent = 'Renaming keeps every past entry exactly as you logged it.';
+      renderSymptomInputs(symptoms);
+    }
+    symptomError.classList.remove('show');
+    symptomOverlay.classList.add('open');
+  }
+
+  function closeSymptomModal(){
+    symptomOverlay.classList.remove('open');
+  }
+
+  saveSymptomsBtn.addEventListener('click', function(){
+    var rows = symptomInputs.querySelectorAll('.symptom-input-row');
+    var result = [];
+    var valid = true;
+    rows.forEach(function(row){
+      var id = row.getAttribute('data-id');
+      var type = row.getAttribute('data-type') || 'scale';
+      var val = row.querySelector('input').value.trim();
+      if(val.length === 0){ valid = false; return; }
+      result.push({id: id, name: val, type: type});
+    });
+    if(!valid || result.length === 0 || result.length > 3){
+      symptomError.classList.add('show');
+      return;
+    }
+    symptomError.classList.remove('show');
+    symptoms = result;
+    saveSymptoms(symptoms);
+    closeSymptomModal();
+    renderAll();
+  });
+
+  settingsBtn.addEventListener('click', function(){
+    openSymptomModal(false);
+  });
+
+  symptomOverlay.addEventListener('click', function(e){
+    if(e.target === symptomOverlay && symptoms){
+      closeSymptomModal();
+    }
+  });
+
+  // ---------- log entry modal ----------
+
+  var entryFieldRefs = {};
+
+  function openEntryModal(){
+    entryForm.innerHTML = '';
+    entryFieldRefs = {};
+
+    var moodField = document.createElement('div');
+    moodField.className = 'field';
+    var moodLabel = document.createElement('label');
+    var moodLabelText = document.createElement('span');
+    moodLabelText.textContent = 'Mood right now';
+    var moodVal = document.createElement('span');
+    moodVal.className = 'val';
+    moodVal.textContent = '5';
+    moodLabel.appendChild(moodLabelText);
+    moodLabel.appendChild(moodVal);
+    var moodInput = document.createElement('input');
+    moodInput.type = 'range';
+    moodInput.min = 1; moodInput.max = 10; moodInput.step = 1; moodInput.value = 5;
+    moodInput.addEventListener('input', function(){ moodVal.textContent = moodInput.value; });
+    var moodHint = document.createElement('div');
+    moodHint.className = 'scale-hint';
+    moodHint.innerHTML = '<span>Low</span><span>High</span>';
+    moodField.appendChild(moodLabel);
+    moodField.appendChild(moodInput);
+    moodField.appendChild(moodHint);
+    entryForm.appendChild(moodField);
+    entryFieldRefs.mood = moodInput;
+
+    symptoms.forEach(function(s){
+      var field = document.createElement('div');
+      field.className = 'field';
+      var skipState = {skipped: false};
+
+      if(s.type === 'count'){
+        var label = document.createElement('label');
+        var labelText = document.createElement('span');
+        labelText.textContent = s.name;
+        var labelVal = document.createElement('span');
+        labelVal.className = 'val';
+        labelVal.textContent = '0';
+        label.appendChild(labelText);
+        label.appendChild(labelVal);
+        field.appendChild(label);
+
+        var stepper = document.createElement('div');
+        stepper.className = 'stepper';
+        var minusBtn = document.createElement('button');
+        minusBtn.type = 'button';
+        minusBtn.textContent = String.fromCharCode(8722);
+        var display = document.createElement('div');
+        display.className = 'count-display';
+        display.textContent = '0';
+        var plusBtn = document.createElement('button');
+        plusBtn.type = 'button';
+        plusBtn.textContent = '+';
+        var countVal = {value: 0};
+        minusBtn.addEventListener('click', function(){
+          if(countVal.value > 0) countVal.value--;
+          display.textContent = countVal.value;
+          labelVal.textContent = countVal.value;
+        });
+        plusBtn.addEventListener('click', function(){
+          if(countVal.value < 99) countVal.value++;
+          display.textContent = countVal.value;
+          labelVal.textContent = countVal.value;
+        });
+        stepper.appendChild(minusBtn);
+        stepper.appendChild(display);
+        stepper.appendChild(plusBtn);
+        field.appendChild(stepper);
+
+        var skipBtn = document.createElement('button');
+        skipBtn.type = 'button';
+        skipBtn.className = 'skip-toggle';
+        skipBtn.textContent = 'Skip this symptom for this entry';
+        skipBtn.addEventListener('click', function(){
+          skipState.skipped = !skipState.skipped;
+          minusBtn.disabled = skipState.skipped;
+          plusBtn.disabled = skipState.skipped;
+          stepper.style.opacity = skipState.skipped ? '0.4' : '1';
+          labelVal.textContent = skipState.skipped ? 'Skipped' : countVal.value;
+          skipBtn.textContent = skipState.skipped ? 'Tap to include this symptom' : 'Skip this symptom for this entry';
+          skipBtn.classList.toggle('active', skipState.skipped);
+        });
+        field.appendChild(skipBtn);
+
+        entryFieldRefs[s.id] = {type: 'count', ref: countVal, skip: skipState};
+      }else{
+        var slabel = document.createElement('label');
+        var slabelText = document.createElement('span');
+        slabelText.textContent = s.name;
+        var sval = document.createElement('span');
+        sval.className = 'val';
+        sval.textContent = '5';
+        slabel.appendChild(slabelText);
+        slabel.appendChild(sval);
+        var sinput = document.createElement('input');
+        sinput.type = 'range';
+        sinput.min = 1; sinput.max = 10; sinput.step = 1; sinput.value = 5;
+        sinput.addEventListener('input', function(){ sval.textContent = sinput.value; });
+        var shint = document.createElement('div');
+        shint.className = 'scale-hint';
+        shint.innerHTML = '<span>Mild</span><span>Severe</span>';
+        field.appendChild(slabel);
+        field.appendChild(sinput);
+        field.appendChild(shint);
+
+        var sskipBtn = document.createElement('button');
+        sskipBtn.type = 'button';
+        sskipBtn.className = 'skip-toggle';
+        sskipBtn.textContent = 'Skip this symptom for this entry';
+        sskipBtn.addEventListener('click', function(){
+          skipState.skipped = !skipState.skipped;
+          sinput.disabled = skipState.skipped;
+          sinput.style.opacity = skipState.skipped ? '0.4' : '1';
+          sval.textContent = skipState.skipped ? 'Skipped' : sinput.value;
+          sskipBtn.textContent = skipState.skipped ? 'Tap to include this symptom' : 'Skip this symptom for this entry';
+          sskipBtn.classList.toggle('active', skipState.skipped);
+        });
+        field.appendChild(sskipBtn);
+
+        entryFieldRefs[s.id] = {type: 'scale', ref: sinput, skip: skipState};
+      }
+
+      entryForm.appendChild(field);
+    });
+
+    entryOverlay.classList.add('open');
+  }
+
+  function closeEntryModal(){
+    entryOverlay.classList.remove('open');
+  }
+
+  saveEntryBtn.addEventListener('click', function(){
+    var now = Date.now();
+    var entry = {
+      id: makeId(),
+      date: todayStr(),
+      time: now,
+      mood: parseInt(entryFieldRefs.mood.value, 10),
+      symptoms: {}
+    };
+    symptoms.forEach(function(s){
+      var field = entryFieldRefs[s.id];
+      if(field.skip.skipped) return;
+      if(field.type === 'count'){
+        entry.symptoms[s.id] = field.ref.value;
+      }else{
+        entry.symptoms[s.id] = parseInt(field.ref.value, 10);
+      }
+    });
+    entries.push(entry);
+    saveEntries(entries);
+    closeEntryModal();
+    renderAll();
+  });
+
+  entryOverlay.addEventListener('click', function(e){
+    if(e.target === entryOverlay){ closeEntryModal(); }
+  });
+
+  // ---------- aggregation ----------
+
+  function entriesForDate(dateStr){
+    return entries.filter(function(e){ return e.date === dateStr; });
+  }
+
+  function hasEntryForDate(dateStr){
+    return entriesForDate(dateStr).length > 0;
+  }
+
+  function average(nums){
+    if(nums.length === 0) return null;
+    var sum = 0;
+    nums.forEach(function(n){ sum += n; });
+    return sum / nums.length;
+  }
+
+  function total(nums){
+    if(nums.length === 0) return null;
+    var sum = 0;
+    nums.forEach(function(n){ sum += n; });
+    return sum;
+  }
+
+  function dayAggregate(dateStr){
+    var dayEntries = entriesForDate(dateStr);
+    if(dayEntries.length === 0) return null;
+    var agg = {
+      count: dayEntries.length,
+      mood: average(dayEntries.map(function(e){ return e.mood; })),
+      symptoms: {}
+    };
+    symptoms.forEach(function(s){
+      var vals = dayEntries
+        .map(function(e){ return e.symptoms ? e.symptoms[s.id] : undefined; })
+        .filter(function(v){ return v !== undefined && v !== null; });
+      if(s.type === 'count'){
+        agg.symptoms[s.id] = total(vals);
+      }else{
+        agg.symptoms[s.id] = average(vals);
+      }
+    });
+    return agg;
+  }
+
+  function round1(n){
+    if(n === null || n === undefined) return null;
+    return Math.round(n * 10) / 10;
+  }
+
+  // ---------- check-in card ----------
+
+  function renderCheckinCard(){
+    checkinCard.innerHTML = '';
+
+    var heading = document.createElement('h2');
+    heading.textContent = 'Today';
+    checkinCard.appendChild(heading);
+
+    var today = todayStr();
+    var todaysEntries = entriesForDate(today).slice().sort(function(a,b){ return b.time - a.time; });
+    var agg = dayAggregate(today);
+
+    var sub = document.createElement('div');
+    sub.className = 'card-sub';
+    sub.textContent = todaysEntries.length === 0
+      ? 'No entries yet today.'
+      : todaysEntries.length + (todaysEntries.length === 1 ? ' entry logged today.' : ' entries logged today.');
+    checkinCard.appendChild(sub);
+
+    if(agg){
+      var chips = document.createElement('div');
+      chips.className = 'summary-chips';
+
+      var moodChip = document.createElement('div');
+      moodChip.className = 'summary-chip';
+      moodChip.innerHTML = '<span class="num">' + round1(agg.mood) + '</span>avg mood';
+      chips.appendChild(moodChip);
+
+      symptoms.forEach(function(s){
+        var v = agg.symptoms[s.id];
+        var chip = document.createElement('div');
+        chip.className = 'summary-chip';
+        if(v === null){
+          chip.innerHTML = '<span class="num">-</span>' + s.name;
+        }else if(s.type === 'count'){
+          chip.innerHTML = '<span class="num">' + v + '</span>' + s.name + ' today';
+        }else{
+          chip.innerHTML = '<span class="num">' + round1(v) + '</span>avg ' + s.name;
+        }
+        chips.appendChild(chip);
+      });
+
+      checkinCard.appendChild(chips);
+    }
+
+    var logBtn = document.createElement('button');
+    logBtn.type = 'button';
+    logBtn.className = 'btn btn-primary btn-block';
+    logBtn.textContent = 'Log an entry';
+    logBtn.style.marginBottom = todaysEntries.length ? '18px' : '0';
+    logBtn.addEventListener('click', openEntryModal);
+    checkinCard.appendChild(logBtn);
+
+    if(todaysEntries.length > 0){
+      var list = document.createElement('div');
+      list.className = 'entry-list';
+
+      todaysEntries.forEach(function(entry){
+        var row = document.createElement('div');
+        row.className = 'entry-row';
+
+        var details = document.createElement('div');
+        details.className = 'entry-details';
+        var parts = [];
+        parts.push('Mood ' + entry.mood);
+        symptoms.forEach(function(s){
+          var v = entry.symptoms ? entry.symptoms[s.id] : undefined;
+          if(v !== undefined && v !== null){
+            parts.push(s.name + ' ' + v);
+          }
+        });
+        details.innerHTML = '<span class="entry-time">' + timeLabel(entry.time) + '</span>' + parts.join(', ');
+        row.appendChild(details);
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'entry-delete';
+        delBtn.setAttribute('aria-label', 'Delete this entry');
+        delBtn.textContent = String.fromCharCode(215);
+        delBtn.addEventListener('click', function(){
+          entries = entries.filter(function(e){ return e.id !== entry.id; });
+          saveEntries(entries);
+          renderAll();
+        });
+        row.appendChild(delBtn);
+
+        list.appendChild(row);
+      });
+
+      checkinCard.appendChild(list);
+    }
+  }
+
+  // ---------- streak ----------
+
+  function renderStreak(){
+    var count = 0;
+    var cursor = 0;
+    while(true){
+      var d = dateStrFromOffset(cursor);
+      if(hasEntryForDate(d)){
+        count++;
+        cursor++;
+      }else{
+        break;
+      }
+    }
+    streakCountEl.textContent = count;
+    if(count === 0){
+      streakLabelEl.textContent = 'Log today to start a streak';
+    }else if(count === 1){
+      streakLabelEl.textContent = '1 day logged in a row';
+    }else{
+      streakLabelEl.textContent = count + ' days logged in a row';
+    }
+  }
+
+  // ---------- chart ----------
+
+  function renderChart(){
+    var days = [];
+    for(var i=29;i>=0;i--){
+      days.push(dateStrFromOffset(i));
+    }
+
+    var loggedCount = days.filter(function(d){ return hasEntryForDate(d); }).length;
+    var emptyEl = document.getElementById('chartEmpty');
+    var canvas = document.getElementById('trendChart');
+
+    if(loggedCount === 0){
+      emptyEl.style.display = 'block';
+      canvas.style.display = 'none';
+      document.getElementById('legendRow').innerHTML = '';
+      if(chartInstance){ chartInstance.destroy(); chartInstance = null; }
+      return;
+    }
+    emptyEl.style.display = 'none';
+    canvas.style.display = 'block';
+
+    var labels = days.map(shortLabel);
+    var dayAggs = days.map(dayAggregate);
+
+    var hasCountSymptom = symptoms.some(function(s){ return s.type === 'count'; });
+
+    var datasets = [{
+      label: 'Mood',
+      data: dayAggs.map(function(a){ return a ? round1(a.mood) : null; }),
+      borderColor: LINE_COLORS[0],
+      backgroundColor: LINE_COLORS[0],
+      spanGaps: false,
+      tension: 0.25,
+      pointRadius: 3,
+      borderWidth: 2,
+      yAxisID: 'y'
+    }];
+
+    symptoms.forEach(function(s, idx){
+      var color = LINE_COLORS[(idx+1) % LINE_COLORS.length];
+      var isCount = s.type === 'count';
+      var data = dayAggs.map(function(a){
+        if(!a) return null;
+        var v = a.symptoms[s.id];
+        return v === null ? null : (isCount ? v : round1(v));
+      });
+      datasets.push({
+        label: s.name + (isCount ? ' (total)' : ' (avg)'),
+        data: data,
+        borderColor: color,
+        backgroundColor: color,
+        spanGaps: false,
+        tension: 0.25,
+        pointRadius: 3,
+        borderWidth: 2,
+        borderDash: isCount ? [6, 4] : [],
+        yAxisID: isCount ? 'y1' : 'y'
+      });
+    });
+
+    var scales = {
+      y: {
+        type: 'linear', position: 'left', min: 1, max: 10, ticks: { stepSize: 1 },
+        title: { display: true, text: 'Mood and scale symptoms (1 to 10, solid line)', color: '#54685D', font: { size: 11 } }
+      },
+      x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } }
+    };
+    if(hasCountSymptom){
+      scales.y1 = {
+        type: 'linear', position: 'right', min: 0, beginAtZero: true, grid: { drawOnChartArea: false },
+        title: { display: true, text: 'Count symptoms (dashed line)', color: '#54685D', font: { size: 11 } }
+      };
+    }
+
+    var ctx = canvas.getContext('2d');
+    if(chartInstance){ chartInstance.destroy(); }
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels: labels, datasets: datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'nearest', intersect: false },
+        scales: scales,
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    var legendRow = document.getElementById('legendRow');
+    legendRow.innerHTML = '';
+    datasets.forEach(function(ds){
+      var item = document.createElement('span');
+      var swatch = document.createElement('span');
+      swatch.className = ds.yAxisID === 'y1' ? 'legend-line legend-line-dashed' : 'legend-line';
+      swatch.style.borderTopColor = ds.borderColor;
+      item.appendChild(swatch);
+      item.appendChild(document.createTextNode(ds.label));
+      legendRow.appendChild(item);
+    });
+  }
+
+  function renderAll(){
+    renderCheckinCard();
+    renderStreak();
+    renderChart();
+  }
+
+  if(!symptoms){
+    checkinCard.innerHTML = '';
+    openSymptomModal(true);
+  }else{
+    renderAll();
+  }
+
+})();
+</script>
+
+</body>
+</html>
